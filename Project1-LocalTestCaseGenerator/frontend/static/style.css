@@ -278,7 +278,8 @@ header h1 {
     gap: 16px;
 }
 
-input {
+input,
+textarea {
     flex: 1;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
@@ -290,10 +291,16 @@ input {
     transition: all 0.3s;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
     background: rgba(255, 255, 255, 0.05);
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+textarea {
+    resize: none;
+    height: 80px;
 }
 
 button {

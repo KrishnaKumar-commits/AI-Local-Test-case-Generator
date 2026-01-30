@@ -34,8 +34,8 @@
         </main>
 
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Describe a feature (e.g., Secure Checkout Flow)..."
-                autocomplete="off">
+            <textarea id="user-input" placeholder="Describe a feature (e.g., Secure Checkout Flow)..."
+                autocomplete="off"></textarea>
             <button id="send-btn">Generate ✨</button>
         </div>
     </div>
@@ -186,7 +186,10 @@
 
         sendBtn.addEventListener('click', generateTestCases);
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') generateTestCases();
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generateTestCases();
+            }
         });
         clearBtn.addEventListener('click', () => {
             chatArea.innerHTML = `
