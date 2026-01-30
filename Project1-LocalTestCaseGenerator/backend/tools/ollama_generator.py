@@ -10,6 +10,7 @@ You MUST respond ONLY with a valid JSON array of objects. Do not include any con
 Each test case object must have exactly these keys:
 - id: A string (e.g., "TC-001")
 - title: A descriptive string
+- scenario: A brief explanation of the test scenario or objective
 - pre_conditions: A string
 - steps: A list of strings
 - expected_result: A string
