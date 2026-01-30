@@ -300,7 +300,20 @@ textarea:focus {
 
 textarea {
     resize: none;
-    height: 80px;
+    height: 100px;
+    padding: 16px 20px;
+    line-height: 1.5;
+    overflow-y: auto;
+}
+
+/* Scrollbar for Textarea */
+textarea::-webkit-scrollbar {
+    width: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: var(--glass-border);
+    border-radius: 10px;
 }
 
 button {
