@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Local Test Case Generator | Phase 4 Stylized</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="container">
+        <header>
+            <h1>AI Local Test Case Generator</h1>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    Engine: <span style="color: var(--accent); font-weight: 700;">llama3.2</span>
+                </div>
+                <button class="secondary-btn" id="clear-btn">Clear Chat</button>
+            </div>
+        </header>
+
+        <main class="chat-area" id="chat-area">
+            <div class="message bot-message">
+                Hello, I am your local Test case Generator. Enter the Userstory below and i will generate Comprhensive
+                test case for you
+            </div>
+        </main>
+
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Describe a feature (e.g., Secure Checkout Flow)..."
+                autocomplete="off">
+            <button id="send-btn">Generate ✨</button>
+        </div>
+    </div>
+
+    <script>
+        const chatArea = document.getElementById('chat-area');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const clearBtn = document.getElementById('clear-btn');
+
+        async function generateTestCases() {
+            const prompt = userInput.value.trim();
+            if (!prompt) return;
+
+            addMessage(prompt, 'user-message');
+            userInput.value = '';
+
+            const loadingId = addLoadingMessage();
+
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const data = await response.json();
+                removeLoading(loadingId);
+
+                if (Array.isArray(data)) {
+                    renderTestCases(data);
+                } else if (data.error) {
+                    addMessage(`Error: ${data.detail || data.error}`, 'bot-message');
+                }
+            } catch (err) {
+                removeLoading(loadingId);
+                addMessage(`Critical Error: ${err.message}`, 'bot-message');
+            }
+        }
+
+        function addMessage(text, className) {
+            const div = document.createElement('div');
+            div.className = `message ${className}`;
+            div.textContent = text;
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function addLoadingMessage() {
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.className = 'message bot-message';
+            div.id = id;
+            div.innerHTML = `
+                <div class="loading-container">
+                    <div class="pulse"></div>
+                    Thinking with Llama 3.2...
+                </div>
+            `;
+            chatArea.appendChild(div);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            return id;
+        }
+
+        function removeLoading(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function renderTestCases(cases) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'bot-message';
+            wrapper.style.background = 'transparent';
+            wrapper.style.border = 'none';
+            wrapper.style.padding = '0';
+            wrapper.style.maxWidth = '100%';
+
+            const intro = document.createElement('div');
+            intro.className = 'message bot-message';
+            intro.innerHTML = `Successfully generated <strong>${cases.length} professional test cases</strong> based on your requirements.`;
+            wrapper.appendChild(intro);
+
+            const grid = document.createElement('div');
+            grid.className = 'test-case-grid';
+
+            cases.forEach(tc => {
+                const card = document.createElement('div');
+                card.className = 'test-case-card';
+                card.innerHTML = `
+                    <div class="tc-header">
+                        <span class="tc-id">${tc.id}</span>
+                        <span class="tc-priority priority-${tc.priority.toLowerCase()}">${tc.priority}</span>
+                    </div>
+                    <span class="tc-title">${tc.title}</span>
+                    
+                    <div class="tc-section">
+                        <span class="tc-label">Pre-conditions</span>
+                        <div class="tc-content">${tc.pre_conditions}</div>
+                    </div>
+
+                    <div class="tc-section">
+                        <span class="tc-label">Steps</span>
+                        <ul class="tc-steps">
+                            ${tc.steps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="tc-section" style="margin-bottom:0">
+                        <span class="tc-label">Expected Result</span>
+                        <div class="tc-content" style="color: var(--accent); font-weight: 600;">${tc.expected_result}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            wrapper.appendChild(grid);
+
+            // Add Download Action
+            const actionArea = document.createElement('div');
+            actionArea.className = 'payload-actions';
+
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'secondary-btn';
+            dlBtn.innerHTML = 'Download JSON Payload';
+            dlBtn.onclick = () => downloadJSON(cases);
+
+            actionArea.appendChild(dlBtn);
+            wrapper.appendChild(actionArea);
+
+            chatArea.appendChild(wrapper);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function downloadJSON(data) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `test-cases-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        sendBtn.addEventListener('click', generateTestCases);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') generateTestCases();
+        });
+        clearBtn.addEventListener('click', () => {
+            chatArea.innerHTML = `
+                <div class="message bot-message">
+                    Hello, I am your local Test case Generator. Enter the Userstory below and i will generate Comprhensive test case for you
+                </div>
+            `;
+        });
+    </script>
+</body>
+
+</html>
