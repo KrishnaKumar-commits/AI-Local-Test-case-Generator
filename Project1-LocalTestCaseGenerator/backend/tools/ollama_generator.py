@@ -31,17 +31,29 @@ def generate_test_cases(prompt, model='llama3.2'):
         
         content = response['message']['content'].strip()
         
-        # Clean up any potential markdown formatting if the model ignored instructions
-        if content.startswith("```json"):
-            content = content[7:-3].strip()
-        elif content.startswith("```"):
-            content = content[3:-3].strip()
-            
-        # Validate JSON
+        # Robust JSON Extraction: Find the first '[' and last ']'
         try:
-            return json.loads(content)
-        except json.JSONDecodeError as je:
-            return {"error": "Invalid JSON returned from model", "raw": content}
+            start_index = content.find('[')
+            end_index = content.rfind(']')
+            
+            if start_index != -1 and end_index != -1:
+                json_str = content[start_index:end_index + 1]
+                return json.loads(json_str)
+            else:
+                # Fallback to direct load
+                return json.loads(content)
+        except json.JSONDecodeError:
+            # Final attempt: strip common markdown artifacts
+            content = content.replace("```json", "").replace("```", "").strip()
+            try:
+                # Re-try extraction from cleaned content
+                start_index = content.find('[')
+                end_index = content.rfind(']')
+                if start_index != -1 and end_index != -1:
+                    return json.loads(content[start_index:end_index + 1])
+                return json.loads(content)
+            except json.JSONDecodeError as je:
+                return {"error": "Invalid JSON returned from model", "raw": content}
 
     except Exception as e:
         return {"error": str(e)}
