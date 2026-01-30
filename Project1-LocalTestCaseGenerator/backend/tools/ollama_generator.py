@@ -19,7 +19,7 @@ Each test case object must have exactly these keys:
 Generate a mix of happy path, negative, and edge case scenarios.
 """
 
-def generate_test_cases(prompt, model='llama3.2'):
+def generate_test_cases(prompt, model='gemma3:4b'):
     try:
         response = ollama.chat(
             model=model,
@@ -61,7 +61,7 @@ def generate_test_cases(prompt, model='llama3.2'):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--prompt", required=True, help="User requirements for test case generation")
-    parser.add_argument("--model", default="llama3.2", help="Ollama model to use")
+    parser.add_argument("--model", default="gemma3:4b", help="Ollama model to use")
     args = parser.parse_args()
 
     result = generate_test_cases(args.prompt, args.model)
